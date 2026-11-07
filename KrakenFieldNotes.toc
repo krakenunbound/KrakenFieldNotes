@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: Kraken Field Notes
+## Notes: Notes and a good / neutral / bad rating for other players, plus who you ignored and why, shown over their nameplate, on your target, their paper doll, tooltip and chat. /fn
+## IconTexture: Interface\Buttons\UI-GuildButton-PublicNote-Up
+## Author: The Kraken
+## Version: 3.1.0
+## OptionalDeps: KrakenIgnoreSync
+## SavedVariables: KrakenFieldNotesDB
+## DefaultState: enabled
+
+Core.lua
+Editor.lua
+Markers.lua
+Ignore.lua
