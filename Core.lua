@@ -5,7 +5,7 @@
 local ADDON, FN = ...
 _G.KrakenFieldNotes = FN
 
-FN.VERSION = "3.1.0"
+FN.VERSION = "3.1.1"
 
 -- The three ratings: label, colour and the symbol drawn for them.
 FN.RATINGS = {

@@ -103,7 +103,8 @@ FN.RecentLines = RecentLines
 
 ---------------------------------------------------------------- noticing a new ignore
 local known = nil      -- [key] = display name, this character's list as last read
-local readyAt          -- ignore-list updates before this are the login load, not you
+local loginAt = 0
+local EARLY = 120      -- seconds after login when a lone new name may still be the list loading
 
 local function CurrentIgnores()
     local list = {}
@@ -149,14 +150,28 @@ function FN.NoteIgnore(name, guid)
     FN.Say(("Noted why you ignored %s. /fn %s to add more."):format(rec and rec.name or name, rec and rec.name or name))
 end
 
+-- Which new names on the list are you ignoring somebody, rather than the list loading.
+-- The server sends the list some time after login (sometimes well after), all at once,
+-- and Ignore Sync fills in names from your other characters in a burst. You ignore
+-- people one at a time. So:
+--   * the first list read is the starting point;
+--   * several new names in one update are the list loading, never you;
+--   * one new name is you, except in the first two minutes after login, where it
+--     counts only if they'd said something (a one-name list loading looks the same).
 local function OnIgnoreList()
     local now = CurrentIgnores()
-    if known and readyAt and GetTime() >= readyAt then
+    local before = known
+    known = now
+    if before then
+        local added = {}
         for key, name in pairs(now) do
-            if not known[key] then FN.NoteIgnore(name) end
+            if not before[key] then added[#added + 1] = { key = key, name = name } end
+        end
+        if #added == 1 then
+            local one = added[1]
+            if GetTime() - loginAt >= EARLY or RecentLines(one.key) then FN.NoteIgnore(one.name) end
         end
     end
-    known = now
     FN.Changed()
 end
 
@@ -169,10 +184,11 @@ function FN.InitIgnore()
         if event == "IGNORELIST_UPDATE" then
             OnIgnoreList()
         elseif event == "PLAYER_LOGIN" then
-            -- The server sends the list a moment after login; that's not you ignoring
-            -- anyone, and neither is Ignore Sync filling the list in right after.
-            readyAt = GetTime() + 20
-            C_Timer.After(20, function() known = CurrentIgnores() end)
+            -- The list arriving after login isn't you ignoring anyone (see OnIgnoreList).
+            -- If nothing arrives at all, the list as it stands two minutes in is the
+            -- starting point.
+            known, loginAt = nil, GetTime()
+            C_Timer.After(EARLY, function() if not known then known = CurrentIgnores() end end)
         else
             FN.Heard(event, a1, a2, a9)
         end

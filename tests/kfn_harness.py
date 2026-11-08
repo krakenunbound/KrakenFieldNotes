@@ -164,7 +164,7 @@ lua.execute(MOCK)
 ns = lua.eval("{}")
 for f in FILES:
     lua.eval("function(s, n) return assert(load(s, '@' .. n)) end")(open(os.path.join(ADDON, f), encoding="utf-8").read(), f)("KrakenFieldNotes", ns)
-lua.execute('Fire("ADDON_LOADED", "KrakenFieldNotes"); Fire("PLAYER_LOGIN"); Fire("PLAYER_ENTERING_WORLD")')
+lua.execute('Fire("ADDON_LOADED", "KrakenFieldNotes"); Fire("PLAYER_LOGIN"); Fire("PLAYER_ENTERING_WORLD"); Fire("IGNORELIST_UPDATE")')
 
 results = []
 def check(name, cond):
@@ -324,9 +324,21 @@ for f in FILES:
     l2.eval("function(s, n) return assert(load(s, '@' .. n)) end")(open(os.path.join(ADDON, f), encoding="utf-8").read(), f)("KrakenFieldNotes", ns2)
 l2.execute('Fire("ADDON_LOADED", "KrakenFieldNotes"); Fire("PLAYER_LOGIN"); Advance(2); IGNORES = {"Old Grudge", "Another One"}; Fire("IGNORELIST_UPDATE"); Advance(4); Ignore("Late Arrival"); Advance(25)')
 check("15 Ignores loaded at login (even in pieces) get no notes", l2.eval("next(KrakenFieldNotesDB.notes)") is None)
-l2.execute('SlashCmdList.KRAKENFIELDNOTES("show autonote"); Ignore("New Pest"); Advance(26)')
+l3 = LuaRuntime(unpack_returned_tuples=True); l3.execute(MOCK)
+ns3 = l3.eval("{}")
+for f in FILES:
+    l3.eval("function(s, n) return assert(load(s, '@' .. n)) end")(open(os.path.join(ADDON, f), encoding="utf-8").read(), f)("KrakenFieldNotes", ns3)
+l3.execute('Fire("ADDON_LOADED", "KrakenFieldNotes"); Fire("PLAYER_LOGIN"); Advance(40); Fire("IGNORELIST_UPDATE"); Advance(45); IGNORES = {"Old Grudge", "Another One"}; Fire("IGNORELIST_UPDATE"); Advance(60)')
+check("15 A list that arrives 45 seconds after login still gets no notes", l3.eval("next(KrakenFieldNotesDB.notes)") is None)
+l3.execute('Ignore("Lone Name"); Advance(61)')
+check("15 A lone silent name soon after login is treated as loading", l3.eval('KrakenFieldNotesDB.notes["lone name"] == nil'))
+l3.execute('Advance(130); Ignore("Fresh Pest"); Advance(131)')
+check("15 ...but once settled, ignoring someone writes a note", l3.eval('KrakenFieldNotesDB.notes["fresh pest"] ~= nil'))
+l3.execute('IGNORES[#IGNORES+1] = "Synced One"; IGNORES[#IGNORES+1] = "Synced Two"; Fire("IGNORELIST_UPDATE"); Advance(132)')
+check("15 Several names in one update (a sync burst) get no notes", l3.eval('KrakenFieldNotesDB.notes["synced one"] == nil and KrakenFieldNotesDB.notes["synced two"] == nil'))
+l2.execute('Advance(130); SlashCmdList.KRAKENFIELDNOTES("show autonote"); Ignore("New Pest"); Advance(131)')
 check("15 With autonote off, ignoring writes nothing", l2.eval("next(KrakenFieldNotesDB.notes)") is None)
-l2.execute('SlashCmdList.KRAKENFIELDNOTES("show autonote"); Ignore("Third Pest"); Advance(27)')
+l2.execute('SlashCmdList.KRAKENFIELDNOTES("show autonote"); Ignore("Third Pest"); Advance(132)')
 check("15 Back on, it does", l2.eval('KrakenFieldNotesDB.notes["third pest"] ~= nil'))
 
 print(f"\n{sum(results)}/{len(results)} passed")
