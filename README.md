@@ -5,7 +5,7 @@ Notes about other players in World of Warcraft: Forever, with a **good**,
 runs past, a glance tells you if you had a good or bad time with them, or
 ignored them for something they said.
 
-Current version: **3.1.0**, for the official Forever client (build 1.60.1.70790,
+Current version: **3.1.1**, for the official Forever client (build 1.60.1.70790,
 interface 16001). Rewritten from Field Notes 2.0 for Classic Era.
 
 ## Where the symbol shows up
@@ -38,7 +38,11 @@ interface 16001). Rewritten from Field Notes 2.0 for Classic Era.
   `Ignored 2026-11-07 14:32 in Elwynn Forest. Last said: (say) "lol noobs, go back to retail" (Trade - City) "WTS gold cheap www"`.
   An existing note keeps its text, with this added on a new line.
 - **What doesn't get a note:**
-  - your ignore list loading at login
+  - your ignore list loading at login, however late it arrives
+  - several names added at once (the list loading, or Ignore Sync filling it in),
+    since you ignore people one at a time
+  - in the first two minutes after login, a single new name from someone who
+    hadn't said anything, since that looks just like a one-name list loading
   - Ignore Sync copying an ignore over from another character, since that
     character already wrote the note (notes are shared by all your characters)
 - `/fn show autonote` turns the automatic notes off or on, and `/fn show ignored`
